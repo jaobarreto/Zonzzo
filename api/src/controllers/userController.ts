@@ -7,7 +7,7 @@ const getAllUsers = async (req: Request, res: Response): Promise<void> => {
     const users = await userService.getAll();
     res.status(200).json({ users });
   } catch (error) {
-    console.log(error);
+    console.error("Error fetching users:", error);
     res.status(500).json({ error: "Error fetching users." });
   }
 };
@@ -31,7 +31,7 @@ const getOneUser = async (req: Request, res: Response): Promise<void> => {
 
     res.status(200).json({ user });
   } catch (error) {
-    console.log(error);
+    console.error("Error fetching user:", error);
     res.status(500).json({ error: "Error fetching user." });
   }
 };

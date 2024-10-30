@@ -4,7 +4,7 @@ import { ObjectId } from "mongodb";
 class UserService {
   async getAll() {
     try {
-      const users = await User.find();
+      const users = await User.find().populate('preferences');
       return users;
     } catch (error) {
       console.log(error);
@@ -14,7 +14,7 @@ class UserService {
 
   async getOne(id: ObjectId) {
     try {
-      const user = await User.findById(id);
+      const user = await User.findById(id).populate('preferences');
       if (!user) {
         throw new Error("User not found.");
       }
