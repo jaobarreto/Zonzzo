@@ -1,5 +1,15 @@
+import mongoose from "mongoose";
 import Preference from "../models/Preferences";
-import { ObjectId } from "mongodb";
+
+interface PreferenceData {
+  userId: string;
+  sleepDuration: number;
+  sleepStartTime: string;
+  sleepEndTime: string;
+  sleepMusic: string;
+  alarmMusic: string;
+  alarmDays: string[];
+}
 
 class PreferenceService {
   async getAll() {
@@ -8,11 +18,15 @@ class PreferenceService {
       return preferences;
     } catch (error) {
       console.error("Error fetching preferences:", error);
-      throw new Error("Error fetching preferences.");
+      //throw new Error("Error fetching preferences.");
     }
   }
 
-  async getOne(id: ObjectId) {
+  async getOne(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new Error("Invalid ID format.");
+    }
+
     try {
       const preference = await Preference.findById(id);
       if (!preference) throw new Error("Preference not found.");
@@ -23,15 +37,7 @@ class PreferenceService {
     }
   }
 
-  async create(data: {
-    userId: string;
-    sleepDuration: number;
-    sleepStartTime: string;
-    sleepEndTime: string;
-    sleepMusic: string;
-    alarmMusic: string;
-    alarmDays: string[];
-  }) {
+  async create(data: PreferenceData) {
     try {
       const newPreference = await Preference.create(data);
       return newPreference;
@@ -41,7 +47,11 @@ class PreferenceService {
     }
   }
 
-  async delete(id: ObjectId) {
+  async delete(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new Error("Invalid ID format.");
+    }
+
     try {
       const result = await Preference.findByIdAndDelete(id);
       if (!result) throw new Error("Preference not found.");
@@ -52,19 +62,16 @@ class PreferenceService {
     }
   }
 
-  async update(userId: string, updateData: {
-    sleepDuration?: number;
-    sleepStartTime?: string;
-    sleepEndTime?: string;
-    sleepMusic?: string;
-    alarmMusic?: string;
-    alarmDays?: string[];
-  }) {
+  async update(userId: string, updateData: Partial<PreferenceData>) {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new Error("Invalid user ID format.");
+    }
+
     try {
       const updatedPreference = await Preference.findOneAndUpdate(
         { userId },
         { $set: updateData },
-        { new: true }
+        { new: true, runValidators: true }
       );
 
       if (!updatedPreference) throw new Error("Preferences not found for this user.");

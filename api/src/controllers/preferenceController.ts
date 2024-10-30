@@ -1,6 +1,16 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import preferenceService from "../services/preferenceService";
-import { ObjectId } from "mongodb";
+
+interface PreferenceData {
+  userId: string;
+  sleepDuration: number;
+  sleepStartTime: string;
+  sleepEndTime: string;
+  sleepMusic: string;
+  alarmMusic: string;
+  alarmDays: string[];
+}
 
 const getAllPreferences = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -13,16 +23,15 @@ const getAllPreferences = async (req: Request, res: Response): Promise<void> => 
 };
 
 const getOnePreference = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    res.status(400).json({ error: "Invalid ID format." });
+    return;
+  }
+
   try {
-    const { id } = req.params;
-
-    if (!ObjectId.isValid(id)) {
-      res.status(400).json({ error: "Invalid ID." });
-      return;
-    }
-
-    const preferenceId = new ObjectId(id);
-    const preference = await preferenceService.getOne(preferenceId);
+    const preference = await preferenceService.getOne(id);
 
     if (!preference) {
       res.status(404).json({ error: "Preference not found." });
@@ -37,9 +46,9 @@ const getOnePreference = async (req: Request, res: Response): Promise<void> => {
 };
 
 const createPreference = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { userId, sleepDuration, sleepStartTime, sleepEndTime, sleepMusic, alarmMusic, alarmDays } = req.body;
+  const { userId, sleepDuration, sleepStartTime, sleepEndTime, sleepMusic, alarmMusic, alarmDays }: PreferenceData = req.body;
 
+  try {
     const newPreference = await preferenceService.create({
       userId,
       sleepDuration,
@@ -58,17 +67,15 @@ const createPreference = async (req: Request, res: Response): Promise<void> => {
 };
 
 const deletePreference = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    res.status(400).json({ error: "Invalid ID format." });
+    return;
+  }
+
   try {
-    const { id } = req.params;
-
-    if (!ObjectId.isValid(id)) {
-      res.sendStatus(400);
-      return;
-    }
-
-    const preferenceId = new ObjectId(id);
-    await preferenceService.delete(preferenceId);
-
+    await preferenceService.delete(id);
     res.sendStatus(204);
   } catch (error) {
     console.error("Error deleting preference:", error);
@@ -77,16 +84,16 @@ const deletePreference = async (req: Request, res: Response): Promise<void> => {
 };
 
 const updatePreference = async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    res.status(400).json({ error: "Invalid user ID format." });
+    return;
+  }
+
+  const updateData: Partial<PreferenceData> = req.body;
+
   try {
-    const { userId } = req.params;
-
-    if (!ObjectId.isValid(userId)) {
-      res.sendStatus(400);
-      return;
-    }
-
-    const updateData = req.body;
-
     const updatedPreference = await preferenceService.update(userId, updateData);
 
     if (!updatedPreference) {
