@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import userService, { UserData } from '../services/userService';
+import userService from "../services/userService";
 import { ObjectId } from "mongodb";
 
 const getAllUsers = async (req: Request, res: Response): Promise<void> => {
@@ -22,7 +22,7 @@ const getOneUser = async (req: Request, res: Response): Promise<void> => {
     }
 
     const userId = new ObjectId(id);
-    const user = await userService.getOne(id);
+    const user = await userService.getOne(userId);
 
     if (!user) {
       res.status(404).json({ error: "User not found." });
@@ -38,8 +38,8 @@ const getOneUser = async (req: Request, res: Response): Promise<void> => {
 
 const createUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, email, password }: UserData = req.body;
-    const newUser = await userService.create({ name, email, password });
+    const { name, email, password } = req.body;
+    const newUser = await userService.create(name, email, password);
     res.status(201).json({ user: newUser });
   } catch (error) {
     console.log(error);
@@ -56,7 +56,8 @@ const deleteUser = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    await userService.delete(id);
+    const userId = new ObjectId(id);
+    await userService.delete(userId);
 
     res.sendStatus(204);
   } catch (error) {
@@ -74,10 +75,10 @@ const updateUser = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const updateData = req.body;
-    const userId = id;
+    const userId = new ObjectId(id);
+    const { name, email, password } = req.body;
 
-    const user = await userService.update(userId, updateData);
+    const user = await userService.update(userId, name, email, password);
 
     if (!user) {
       res.sendStatus(404);

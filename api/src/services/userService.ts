@@ -1,81 +1,69 @@
-import mongoose from "mongoose";
-import User, { IUser } from "../models/User";
-import Preference from "../models/Preferences";
-
-export interface UserData {
-  name: string;
-  email: string;
-  password: string;
-  preferences?: mongoose.Types.ObjectId[];
-}
+import User from "../models/User";
+import { ObjectId } from "mongodb";
 
 class UserService {
-  async getAll(): Promise<IUser[]> {
+  async getAll() {
     try {
-      const users = await User.find().populate("preferences");
-      return users as IUser[];
+      const users = await User.find().populate('preferences');
+      return users;
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.log(error);
       throw new Error("Error fetching users.");
     }
   }
 
-  async getOne(id: string): Promise<IUser> {
+  async getOne(id: ObjectId) {
     try {
-      const user = await User.findById(id).populate("preferences");
+      const user = await User.findById(id).populate('preferences');
       if (!user) {
-        throw new Error("Usuário não encontrado.");
+        throw new Error("User not found.");
       }
-      return user as IUser;
+      return user;
     } catch (error) {
-      console.error(error);
-      throw new Error("Erro ao buscar usuário.");
+      console.log(error);
+      throw new Error("Error fetching user.");
     }
   }
 
-  async create(data: UserData): Promise<IUser> {
+  async create(name: string, email: string, password: string) {
     try {
-      const newUser = await User.create(data);
-      return newUser as IUser;
+      const newUser = new User({
+        name,
+        email,
+        password,
+      });
+      await newUser.save();
+      return newUser;
     } catch (error) {
-      console.error("Error creating user:", error);
+      console.log(error);
       throw new Error("Error creating user.");
     }
   }
 
-  async delete(id: string): Promise<void> {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new Error("Invalid ID format.");
-    }
-
+  async delete(id: ObjectId) {
     try {
-      await Preference.deleteMany({ userId: id });
-
-      const result = await User.findByIdAndDelete(id);
-      if (!result) throw new Error("User not found.");
+      await User.findByIdAndDelete(id);
       console.log(`User with id:${id} has been deleted.`);
     } catch (error) {
-      console.error("Error deleting user:", error);
       throw new Error("Error deleting user.");
     }
   }
 
-  async update(id: string, updateData: Partial<UserData>): Promise<IUser> {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new Error("Invalid user ID format.");
-    }
-
+  async update(id: ObjectId, name: string, email: string, password: string) {
     try {
       const updatedUser = await User.findByIdAndUpdate(
         id,
-        { $set: updateData },
-        { new: true, runValidators: true }
+        { name, email, password },
+        { new: true }
       );
-
-      if (!updatedUser) throw new Error("User not found.");
-      return updatedUser as IUser;
+      if (updatedUser) {
+        console.log(`User data with id:${id} successfully updated.`);
+        return updatedUser;
+      } else {
+        return null;
+      }
     } catch (error) {
-      console.error("Error updating user:", error);
+      console.log(error);
       throw new Error("Error updating user.");
     }
   }

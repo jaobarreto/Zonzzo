@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import Preference, { IPreference } from "../models/Preferences";
+import Preference from "../models/Preference";
+import User from "../models/User";
 
 interface PreferenceData {
   userId: string;
@@ -12,17 +13,17 @@ interface PreferenceData {
 }
 
 class PreferenceService {
-  async getAll(): Promise<IPreference[]> {
+  async getAll() {
     try {
       const preferences = await Preference.find();
-      return preferences as IPreference[];
+      return preferences;
     } catch (error) {
       console.error("Error fetching preferences:", error);
-      throw new Error("Error fetching preferences.");
+      //throw new Error("Error fetching preferences.");
     }
   }
 
-  async getOne(id: string): Promise<IPreference> {
+  async getOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new Error("Invalid ID format.");
     }
@@ -30,24 +31,27 @@ class PreferenceService {
     try {
       const preference = await Preference.findById(id);
       if (!preference) throw new Error("Preference not found.");
-      return preference as IPreference;
+      return preference;
     } catch (error) {
       console.error("Error fetching a specific preference:", error);
       throw new Error("Error fetching a specific preference.");
     }
   }
 
-  async create(data: PreferenceData): Promise<IPreference> {
+  async create(data: PreferenceData) {
     try {
       const newPreference = await Preference.create(data);
-      return newPreference as IPreference;
+      await User.findByIdAndUpdate(data.userId, {
+        $push: { preferences: newPreference._id },
+      });
+      return newPreference;
     } catch (error) {
       console.error("Error creating preference:", error);
       throw new Error("Error creating preference.");
     }
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new Error("Invalid ID format.");
     }
@@ -62,7 +66,7 @@ class PreferenceService {
     }
   }
 
-  async update(userId: string, updateData: Partial<PreferenceData>): Promise<IPreference> {
+  async update(userId: string, updateData: Partial<PreferenceData>) {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       throw new Error("Invalid user ID format.");
     }
@@ -74,8 +78,9 @@ class PreferenceService {
         { new: true, runValidators: true }
       );
 
-      if (!updatedPreference) throw new Error("Preferences not found for this user.");
-      return updatedPreference as IPreference;
+      if (!updatedPreference)
+        throw new Error("Preferences not found for this user.");
+      return updatedPreference;
     } catch (error) {
       console.error("Error updating preference:", error);
       throw new Error("Error updating preference.");
