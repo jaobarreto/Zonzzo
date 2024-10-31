@@ -1,10 +1,11 @@
-import User from "../models/User";
+import User, { IUser } from "../models/User";
 import { ObjectId } from "mongodb";
+import bcrypt from "bcryptjs";
 
 class UserService {
   async getAll() {
     try {
-      const users = await User.find().populate('preferences');
+      const users = await User.find().populate("preferences");
       return users;
     } catch (error) {
       console.log(error);
@@ -14,7 +15,7 @@ class UserService {
 
   async getOne(id: ObjectId) {
     try {
-      const user = await User.findById(id).populate('preferences');
+      const user = await User.findById(id).populate("preferences");
       if (!user) {
         throw new Error("User not found.");
       }
@@ -27,11 +28,15 @@ class UserService {
 
   async create(name: string, email: string, password: string) {
     try {
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
       const newUser = new User({
         name,
         email,
-        password,
+        password: hashedPassword,
       });
+
       await newUser.save();
       return newUser;
     } catch (error) {
@@ -51,11 +56,14 @@ class UserService {
 
   async update(id: ObjectId, name: string, email: string, password: string) {
     try {
+      const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
+
       const updatedUser = await User.findByIdAndUpdate(
         id,
-        { name, email, password },
+        { name, email, ...(hashedPassword ? { password: hashedPassword } : {}) },
         { new: true }
       );
+
       if (updatedUser) {
         console.log(`User data with id:${id} successfully updated.`);
         return updatedUser;
@@ -65,6 +73,16 @@ class UserService {
     } catch (error) {
       console.log(error);
       throw new Error("Error updating user.");
+    }
+  }
+
+  async getUserByEmail(email: string): Promise<IUser | null> {
+    try {
+      const user = await User.findOne({ email }).populate("preferences");
+      return user;
+    } catch (error) {
+      console.log(error);
+      throw new Error("Error fetching user by email.");
     }
   }
 }
