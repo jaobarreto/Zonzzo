@@ -1,9 +1,9 @@
 import express from "express";
 import { getAllPreferences, getOnePreference, createPreference, deletePreference, updatePreference } from "../controllers/preferenceController";
-import { authMiddleware } from "../middlewares/auth-middleware";
+import { authorize } from "../middlewares/auth-middleware";
 const router = express.Router();
 
-router.use(authMiddleware);
+router.use(authorize);
 
 router.get("/", getAllPreferences);
 router.get("/:id", getOnePreference);

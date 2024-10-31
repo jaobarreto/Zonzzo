@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
+import { authenticate } from "../middlewares/auth-middleware";
 
-export const login = (req: Request, res: Response, next: NextFunction): Response => {
-
-  return res.status(200).json({ message: "Login successful!" });
+export const login = (req: Request, res: Response, next: NextFunction): void => {
+  authenticate(req, res);
 };
