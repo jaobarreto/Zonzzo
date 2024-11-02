@@ -6,6 +6,6 @@ const router = Router();
 router.post('/', login);
 
 // add logout
-// router.post('/logout', authenticate, logout); // Exemplo para logout
+// router.post('/logout', authenticate, logout);
 
 export default router;

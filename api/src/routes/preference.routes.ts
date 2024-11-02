@@ -1,6 +1,7 @@
 import express from "express";
 import { getAllPreferences, getOnePreference, createPreference, deletePreference, updatePreference } from "../controllers/preferenceController";
 import { authorize } from "../middlewares/auth-middleware";
+
 const router = express.Router();
 
 router.use(authorize);

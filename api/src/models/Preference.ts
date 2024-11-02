@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-interface IPreference extends Document {
+export interface IPreference extends Document {
   userId: Schema.Types.ObjectId;
   sleepDuration: number;
   sleepStartTime: string;

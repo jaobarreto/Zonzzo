@@ -50,7 +50,7 @@ export const authenticate = async (req: Request, res: Response) => {
     { id: user._id.toString(), email: user.email },
     secretKey,
     {
-      expiresIn: "10m",
+      expiresIn: "3h",
     }
   );
 

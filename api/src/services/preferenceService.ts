@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Preference from "../models/Preference";
+import Preference, { IPreference } from "../models/Preference";
 import User from "../models/User";
 
 interface PreferenceData {
@@ -13,17 +13,17 @@ interface PreferenceData {
 }
 
 class PreferenceService {
-  async getAll() {
+  async getAll(): Promise<IPreference[]> {
     try {
       const preferences = await Preference.find();
       return preferences;
     } catch (error) {
       console.error("Error fetching preferences:", error);
-      //throw new Error("Error fetching preferences.");
+      throw new Error("Error fetching preferences.");
     }
   }
 
-  async getOne(id: string) {
+  async getOne(id: string): Promise<IPreference> {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new Error("Invalid ID format.");
     }
@@ -38,7 +38,7 @@ class PreferenceService {
     }
   }
 
-  async create(data: PreferenceData) {
+  async create(data: PreferenceData): Promise<IPreference> {
     try {
       const newPreference = await Preference.create(data);
       await User.findByIdAndUpdate(data.userId, {
@@ -51,7 +51,7 @@ class PreferenceService {
     }
   }
 
-  async delete(id: string) {
+  async delete(id: string): Promise<void> {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new Error("Invalid ID format.");
     }
@@ -66,7 +66,7 @@ class PreferenceService {
     }
   }
 
-  async update(userId: string, updateData: Partial<PreferenceData>) {
+  async update(userId: string, updateData: Partial<PreferenceData>): Promise<IPreference> {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       throw new Error("Invalid user ID format.");
     }
