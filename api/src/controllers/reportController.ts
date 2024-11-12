@@ -1,26 +1,57 @@
 import { Request, Response } from "express";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import reportService from "../services/reportService";
 
 interface ReportData {
   userId: string;
   sleepDurations: number[];
   sleepQualities: number[];
+  energyLevels: number[];
 }
 
-const createReport = async (req: Request, res: Response): Promise<void> => {
-  const { userId, sleepDurations, sleepQualities }: ReportData = req.body;
+interface GetReportParams {
+  id: string;
+}
 
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
+interface ReportIdParam {
+  reportId: Types.ObjectId;
+}
+
+interface UserIdParam {
+  userId: string;
+}
+
+const getDynamicReport = async (req: Request<UserIdParam>, res: Response): Promise<void> => {
+  const { userId } = req.params;
+
+  if (!Types.ObjectId.isValid(userId)) {
+    res.status(400).json({ error: "Invalid user ID format." });
+    return;
+  }
+
+  try {
+    const dynamicReport = await reportService.generateDynamicReport(new Types.ObjectId(userId));
+    res.status(200).json({ dynamicReport });
+  } catch (error) {
+    console.error("Error generating dynamic report:", error);
+    res.status(500).json({ error: "Error generating dynamic report." });
+  }
+};
+
+const createReport = async (req: Request<{}, {}, ReportData>, res: Response): Promise<void> => {
+  const { userId, sleepDurations, sleepQualities, energyLevels } = req.body;
+
+  if (!Types.ObjectId.isValid(userId)) {
     res.status(400).json({ error: "Invalid user ID format." });
     return;
   }
 
   try {
     const report = await reportService.createReport({
-      userId: new mongoose.Types.ObjectId(userId),
+      userId: new Types.ObjectId(userId),
       sleepDurations,
       sleepQualities,
+      energyLevels,
     });
 
     res.status(201).json({ report });
@@ -30,10 +61,10 @@ const createReport = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-const getOneReport = async (req: Request, res: Response): Promise<void> => {
+const getOneReport = async (req: Request<GetReportParams>, res: Response): Promise<void> => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!Types.ObjectId.isValid(id)) {
     res.status(400).json({ error: "Invalid ID format." });
     return;
   }
@@ -53,54 +84,19 @@ const getOneReport = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-const updateReport = async (req: Request, res: Response): Promise<void> => {
-  const { userId } = req.params;
+const deleteReport = async (req: Request<ReportIdParam>, res: Response): Promise<void> => {
+  const { reportId } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
-    res.status(400).json({ error: "Invalid user ID format." });
-    return;
-  }
-
-  const {
-    sleepDurations,
-    sleepQualities,
-  }: Partial<Pick<ReportData, "sleepDurations" | "sleepQualities">> = req.body;
-
-  const updateData = { sleepDurations, sleepQualities };
-
-  try {
-    const updatedReport = await reportService.updateReport(
-      new mongoose.Types.ObjectId(userId),
-      updateData
-    );
-
-    if (!updatedReport) {
-      res.status(404).json({ error: "Report not found for this user." });
-      return;
-    }
-
-    res.status(200).json({ report: updatedReport });
-  } catch (error) {
-    console.error("Error updating report:", error);
-    res.status(500).json({ error: "Error updating report." });
-  }
-};
-
-const deleteReport = async (req: Request, res: Response): Promise<void> => {
-  const { userId } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
-    res.status(400).json({ error: "Invalid user ID format." });
+  if (!Types.ObjectId.isValid(reportId)) {
+    res.status(400).json({ error: "Invalid report ID format." });
     return;
   }
 
   try {
-    const deletedReport = await reportService.deleteReport(
-      new mongoose.Types.ObjectId(userId)
-    );
+    const deletedReport = await reportService.deleteReport(new Types.ObjectId(reportId));
 
     if (!deletedReport) {
-      res.status(404).json({ error: "Report not found for this user." });
+      res.status(404).json({ error: "Report not found." });
       return;
     }
 
@@ -111,4 +107,4 @@ const deleteReport = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export { createReport, getOneReport, updateReport, deleteReport };
+export { createReport, getOneReport, deleteReport, getDynamicReport };

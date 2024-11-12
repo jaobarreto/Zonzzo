@@ -5,6 +5,8 @@ import userRoutes from "./routes/user.routes";
 import preferenceRoutes from "./routes/preference.routes";
 import authRoutes from './routes/authenticate.routes'
 import reportRoutes from './routes/report.routes'
+import sleepRoutes from './routes/sleepSession.routes'
+import moodRoutes from './routes/dailyMood.routes'
 
 dotenv.config();
 
@@ -18,8 +20,10 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/api/users", userRoutes);
-app.use("/api/preferences", preferenceRoutes);
 app.use("/api/auth", authRoutes)
+app.use("/api/preferences", preferenceRoutes);
+app.use("/api/sleep", sleepRoutes)
+app.use("/api/mood", moodRoutes)
 app.use("/api/report", reportRoutes)
 
 app.use((req: Request, res: Response) => {

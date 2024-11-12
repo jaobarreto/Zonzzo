@@ -6,6 +6,8 @@ export interface IReport extends Document {
   monthlySleepAverage: number;
   weeklySleepQuality: number;
   monthlySleepQuality: number;
+  weeklyEnergyLevel: number;
+  monthlyEnergyLevel: number;
 }
 
 const reportSchema = new Schema<IReport>(
@@ -15,6 +17,8 @@ const reportSchema = new Schema<IReport>(
     monthlySleepAverage: { type: Number, required: true },
     weeklySleepQuality: { type: Number, required: true },
     monthlySleepQuality: { type: Number, required: true },
+    weeklyEnergyLevel: { type: Number, required: false },
+    monthlyEnergyLevel: { type: Number, required: false },
   },
   { timestamps: true }
 );
