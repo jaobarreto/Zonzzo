@@ -1,110 +1,44 @@
-import { Request, Response } from "express";
-import mongoose, { Types } from "mongoose";
-import reportService from "../services/reportService";
+import { Request, Response } from 'express';
+import ReportService from '../services/reportService';
 
-interface ReportData {
-  userId: string;
-  sleepDurations: number[];
-  sleepQualities: number[];
-  energyLevels: number[];
-}
+const reportService = new ReportService();
 
-interface GetReportParams {
-  id: string;
-}
-
-interface ReportIdParam {
-  reportId: Types.ObjectId;
-}
-
-interface UserIdParam {
-  userId: string;
-}
-
-const getDynamicReport = async (req: Request<UserIdParam>, res: Response): Promise<void> => {
-  const { userId } = req.params;
-
-  if (!Types.ObjectId.isValid(userId)) {
-    res.status(400).json({ error: "Invalid user ID format." });
-    return;
-  }
-
+// Função para gerar o relatório semanal
+export const getWeeklyReport = async (req: Request, res: Response) => {
   try {
-    const dynamicReport = await reportService.generateDynamicReport(new Types.ObjectId(userId));
-    res.status(200).json({ dynamicReport });
+    const { userId } = req.params;
+    const weeklyReport = await reportService.generateWeeklyReport(userId);
+    res.status(200).json(weeklyReport);
   } catch (error) {
-    console.error("Error generating dynamic report:", error);
-    res.status(500).json({ error: "Error generating dynamic report." });
+    res.status(500).json({ error: `Error generating weekly report: ${error}` });
   }
 };
 
-const createReport = async (req: Request<{}, {}, ReportData>, res: Response): Promise<void> => {
-  const { userId, sleepDurations, sleepQualities, energyLevels } = req.body;
-
-  if (!Types.ObjectId.isValid(userId)) {
-    res.status(400).json({ error: "Invalid user ID format." });
-    return;
-  }
-
+// Função para gerar o relatório mensal
+export const getMonthlyReport = async (req: Request, res: Response) => {
   try {
-    const report = await reportService.createReport({
-      userId: new Types.ObjectId(userId),
-      sleepDurations,
-      sleepQualities,
-      energyLevels,
-    });
-
-    res.status(201).json({ report });
+    const { userId } = req.params;
+    const monthlyReport = await reportService.generateMonthlyReport(userId);
+    res.status(200).json(monthlyReport);
   } catch (error) {
-    console.error("Error creating report:", error);
-    res.status(500).json({ error: "Error creating report." });
+    res.status(500).json({ error: 'Error' });
   }
 };
 
-const getOneReport = async (req: Request<GetReportParams>, res: Response): Promise<void> => {
-  const { id } = req.params;
-
-  if (!Types.ObjectId.isValid(id)) {
-    res.status(400).json({ error: "Invalid ID format." });
-    return;
-  }
-
+// Função para exibir um relatório completo com dados semanais e mensais
+export const getFullReport = async (req: Request, res: Response) => {
   try {
-    const report = await reportService.getOne(id);
+    const { userId } = req.params;
+    const weeklyReport = await reportService.generateWeeklyReport(userId);
+    const monthlyReport = await reportService.generateMonthlyReport(userId);
 
-    if (!report) {
-      res.status(404).json({ error: "Report not found." });
-      return;
-    }
+    const fullReport = {
+      weeklyReport,
+      monthlyReport,
+    };
 
-    res.status(200).json({ report });
+    res.status(200).json(fullReport);
   } catch (error) {
-    console.error("Error fetching report:", error);
-    res.status(500).json({ error: "Error fetching report." });
+    res.status(500).json({ error: 'Error' });
   }
 };
-
-const deleteReport = async (req: Request<ReportIdParam>, res: Response): Promise<void> => {
-  const { reportId } = req.params;
-
-  if (!Types.ObjectId.isValid(reportId)) {
-    res.status(400).json({ error: "Invalid report ID format." });
-    return;
-  }
-
-  try {
-    const deletedReport = await reportService.deleteReport(new Types.ObjectId(reportId));
-
-    if (!deletedReport) {
-      res.status(404).json({ error: "Report not found." });
-      return;
-    }
-
-    res.sendStatus(204);
-  } catch (error) {
-    console.error("Error deleting report:", error);
-    res.status(500).json({ error: "Error deleting report." });
-  }
-};
-
-export { createReport, getOneReport, deleteReport, getDynamicReport };

@@ -1,15 +1,10 @@
 import express from 'express';
-import { getOneReport, getDynamicReport, deleteReport, createReport } from '../controllers/reportController';
-import { authorize } from '../middlewares/auth-middleware';
+import { getWeeklyReport, getMonthlyReport, getFullReport } from '../controllers/reportController';
 
 const router = express.Router();
 
-router.use(authorize);
-
-router.get("/:id", getOneReport);
-router.post("/", createReport);
-router.delete("/:id", deleteReport);
-
-router.get("/:userId/dynamic-report", getDynamicReport);
+router.get('/weekly/:userId', getWeeklyReport);
+router.get('/monthly/:userId', getMonthlyReport);
+router.get('/full/:userId', getFullReport);
 
 export default router;

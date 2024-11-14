@@ -1,27 +1,33 @@
-import mongoose, { Schema, Document, Types } from "mongoose";
+import { Schema, model, Document } from 'mongoose';
 
 export interface IReport extends Document {
-  userId: Types.ObjectId;
-  weeklySleepAverage: number;
-  monthlySleepAverage: number;
-  weeklySleepQuality: number;
-  monthlySleepQuality: number;
-  weeklyEnergyLevel: number;
-  monthlyEnergyLevel: number;
+  userId: string;
+  weeklySleepQuality: number; // Pontuação da qualidade do sono semanal
+  monthlySleepQuality: number; // Pontuação da qualidade do sono mensal
+  averageSleepDuration: number; // Média de duração do sono em minutos
+  sleepEfficiency: number; // Eficiência do sono (%)
+  sleepLatencyScore: number; // Índice de Latência do Sono
+  sleepFragmentationScore: number; // Pontuação de Fragmentação do Sono
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const reportSchema = new Schema<IReport>(
+const ReportSchema = new Schema<IReport>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    weeklySleepAverage: { type: Number, required: true },
-    monthlySleepAverage: { type: Number, required: true },
-    weeklySleepQuality: { type: Number, required: true },
-    monthlySleepQuality: { type: Number, required: true },
-    weeklyEnergyLevel: { type: Number, required: false },
-    monthlyEnergyLevel: { type: Number, required: false },
+    userId: { type: String, required: true },
+    weeklySleepQuality: { type: Number, required: true, default: 0 },
+    monthlySleepQuality: { type: Number, required: true, default: 0 },
+    averageSleepDuration: { type: Number, required: true, default: 0 },
+    sleepEfficiency: { type: Number, required: true, default: 0 },
+    sleepLatencyScore: { type: Number, required: true, default: 0 },
+    sleepFragmentationScore: { type: Number, required: true, default: 0 }
   },
-  { timestamps: true }
+  {
+    timestamps: true
+  }
 );
 
-const Report = mongoose.model<IReport>("Report", reportSchema);
+
+const Report = model<IReport>('Report', ReportSchema);
+
 export default Report;

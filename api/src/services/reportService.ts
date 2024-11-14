@@ -1,103 +1,123 @@
-import mongoose, { Types } from "mongoose";
-import Report, { IReport } from "../models/Report";
-import sleepSessionService from "./sleepSessionService";
-import dailyMoodService from "./dailyMoodService";
-
-interface ReportData {
-  userId: Types.ObjectId;
-  sleepDurations: number[];
-  sleepQualities: number[];
-  energyLevels: number[];
-}
+import Report, { IReport } from '../models/Report';
+import SleepSession, { ISleepSession } from '../models/SleepSession';
 
 class ReportService {
-  private calculateAverage(values: number[]): number {
-    const total = values.reduce((sum, value) => sum + value, 0);
-    return values.length ? total / values.length : 0;
+  private calculateSleepEfficiency(totalSleep: number, totalBedTime: number): number {
+    if (totalBedTime === 0) return 0;
+    const efficiency = (totalSleep / totalBedTime) * 100;
+    console.log("Calculated Efficiency:", efficiency);
+    return efficiency;
   }
 
-  async generateDynamicReport(userId: Types.ObjectId) {
-    const sleepSessions = await sleepSessionService.getSessionsForUser(userId);
-    const dailyMoods = await dailyMoodService.getMoodsForUser(userId);
+  private calculateSleepQuality(efficiency: number, latency: number, duration: number, awakenings: number): number {
+    const quality = (0.5 * efficiency) + (0.2 * latency) + (0.2 * duration) + (0.1 * awakenings);
+    console.log("Calculated Sleep Quality:", quality);
+    return quality;
+  }
 
-    const past7Days = new Date();
-    past7Days.setDate(past7Days.getDate() - 7);
+  private calculateSleepFragmentation(awakenings: number, duration: number): number {
+    if (duration === 0) return 0;
+    const fragmentation = (awakenings / duration) * 100;
+    console.log("Calculated Sleep Fragmentation:", fragmentation);
+    return fragmentation;
+  }
 
-    const past30Days = new Date();
-    past30Days.setDate(past30Days.getDate() - 30);
+  private calculateLatencyIndex(sleepLatency: number, idealLatency: number = 20): number {
+    if (sleepLatency === 0) return 0;
+    const latencyIndex = (1 - sleepLatency / idealLatency) * 100;
+    console.log("Calculated Latency Index:", latencyIndex);
+    return latencyIndex;
+  }
 
-    const weeklySleepDurations = sleepSessions
-      .filter((session: any) => session.date >= past7Days)
-      .map((session: any) => session.duration);
+  private calculateAverage(values: number[]): number {
+    if (values.length === 0) return 0;
+    const average = values.reduce((acc, value) => acc + value, 0) / values.length;
+    console.log("Calculated Average:", average);
+    return average;
+  }
 
-    const monthlySleepDurations = sleepSessions
-      .filter((session: any) => session.date >= past30Days)
-      .map((session: any) => session.duration);
+  public async generateWeeklyReport(userId: string): Promise<IReport> {
+    const startOfWeek = this.getStartOfWeek();
+    const endOfWeek = new Date(); // Usamos a data atual como fim da semana
 
-    const weeklyEnergyLevels = dailyMoods
-      .filter((mood: any) => mood.date >= past7Days)
-      .map((mood: any) => mood.energyLevel);
+    console.log("Start of Week:", startOfWeek);
+    console.log("End of Week:", endOfWeek); // Verifique se está retornando a data correta
 
-    const monthlyEnergyLevels = dailyMoods
-      .filter((mood: any) => mood.date >= past30Days)
-      .map((mood: any) => mood.energyLevel);
+    const weeklySessions = await SleepSession.find({
+      userId,
+      date: { $gte: startOfWeek, $lte: endOfWeek }
+    });
+
+    console.log("Weekly Sessions:", weeklySessions); // Verifique as sessões encontradas
+
+    const reportData = this.generateReportFromSessions(weeklySessions);
+    const report = new Report({ userId, ...reportData });
+
+    return await report.save();
+  }
+
+
+  public async generateMonthlyReport(userId: string): Promise<IReport> {
+    const monthlySessions = await SleepSession.find({
+      userId,
+      date: { $gte: this.getStartOfMonth(), $lte: new Date() }
+    });
+
+    const reportData = this.generateReportFromSessions(monthlySessions);
+    const report = new Report({ userId, ...reportData });
+
+    return await report.save();
+  }
+
+  private generateReportFromSessions(sessions: ISleepSession[]) {
+    if (!sessions.length) {
+      console.log("No sessions found for report generation.");
+      return {
+        weeklySleepQuality: 0,
+        monthlySleepQuality: 0,
+        averageSleepDuration: 0,
+        sleepEfficiency: 0,
+        sleepLatencyScore: 0,
+        sleepFragmentationScore: 0,
+      };
+    }
+
+    const sessionData = sessions.map(session => ({
+      efficiency: this.calculateSleepEfficiency(session.totalSleep, session.totalBedTime),
+      latency: this.calculateLatencyIndex(session.sleepLatency),
+      duration: session.totalSleep / 60,
+      awakenings: session.awakenings,
+    }));
 
     return {
-      weeklySleepAverage: this.calculateAverage(weeklySleepDurations),
-      monthlySleepAverage: this.calculateAverage(monthlySleepDurations),
-      weeklyEnergyLevel: this.calculateAverage(weeklyEnergyLevels),
-      monthlyEnergyLevel: this.calculateAverage(monthlyEnergyLevels)
+      weeklySleepQuality: this.calculateAverage(
+        sessionData.map(data => this.calculateSleepQuality(data.efficiency, data.latency, data.duration, data.awakenings))
+      ),
+      monthlySleepQuality: this.calculateAverage(
+        sessionData.map(data => this.calculateSleepQuality(data.efficiency, data.latency, data.duration, data.awakenings))
+      ),
+      averageSleepDuration: this.calculateAverage(sessionData.map(data => data.duration * 60)),
+      sleepEfficiency: this.calculateAverage(sessionData.map(data => data.efficiency)),
+      sleepLatencyScore: this.calculateAverage(sessionData.map(data => data.latency)),
+      sleepFragmentationScore: this.calculateAverage(
+        sessionData.map(data => this.calculateSleepFragmentation(data.awakenings, data.duration))
+      ),
     };
   }
 
-  async createReport(data: ReportData): Promise<IReport> {
-    const { userId, sleepDurations = [], sleepQualities = [], energyLevels = [] } = data;
-
-    const sleepStats = await sleepSessionService.calculateSleepStats(userId);
-
-    const weeklySleepAverage = parseFloat(this.calculateAverage(sleepDurations.slice(-7)).toFixed(2));
-    const monthlySleepAverage = parseFloat(this.calculateAverage(sleepDurations).toFixed(2));
-    const weeklySleepQuality = parseFloat(this.calculateAverage(sleepQualities.slice(-7)).toFixed(2));
-    const monthlySleepQuality = parseFloat(this.calculateAverage(sleepQualities).toFixed(2));
-    const weeklyEnergyLevel = parseFloat(this.calculateAverage(energyLevels.slice(-7)).toFixed(2));
-    const monthlyEnergyLevel = parseFloat(this.calculateAverage(energyLevels).toFixed(2));
-
-    const weeklySleepLatency = parseFloat(sleepStats.weeklyAverageLatency.toFixed(2));
-    const monthlySleepLatency = parseFloat(sleepStats.monthlyAverageLatency.toFixed(2));
-
-    const report = new Report({
-      userId,
-      weeklySleepAverage,
-      monthlySleepAverage,
-      weeklySleepQuality,
-      monthlySleepQuality,
-      weeklyEnergyLevel,
-      monthlyEnergyLevel,
-      weeklySleepLatency,
-      monthlySleepLatency,
-    });
-
-    return report.save();
+  private getStartOfWeek(): Date {
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Domingo, 1 = Segunda-feira, etc.
+    const diff = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek; // Pega a segunda-feira da semana
+    now.setDate(now.getDate() + diff); // Ajusta para a segunda-feira
+    now.setHours(0, 0, 0, 0); // Coloca o horário para 00:00:00
+    return now;
   }
 
-  async getOne(id: string): Promise<IReport> {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new Error("Invalid ID format.");
-    }
-
-    try {
-      const report = await Report.findById(id);
-      if (!report) throw new Error("Report not found.");
-      return report;
-    } catch (error) {
-      console.error("Error fetching a specific report:", error);
-      throw new Error("Error fetching a specific report.");
-    }
-  }
-
-  async deleteReport(reportId: Types.ObjectId): Promise<IReport | null> {
-    return Report.findByIdAndDelete(reportId).exec();
+  private getStartOfMonth(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
   }
 }
 
-export default new ReportService();
+export default ReportService;

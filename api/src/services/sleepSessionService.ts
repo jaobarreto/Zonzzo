@@ -1,102 +1,76 @@
-import mongoose, { Types } from "mongoose";
-import SleepSession, { ISleepSession } from "../models/SleepSession";
-
-interface SleepSessionData {
-  userId: Types.ObjectId;
-  date: Date;
-  sleepDuration: number;
-  sleepQuality: number;
-  sleepLatency: number;
-}
+import SleepSession, { ISleepSession } from '../models/SleepSession';
 
 class SleepSessionService {
-  async createSession(data: SleepSessionData): Promise<ISleepSession> {
-    const { userId, date, sleepDuration, sleepQuality, sleepLatency } = data;
+  public async createSession(sessionData: {
+    userId: string;
+    sleepStart: string;
+    sleepEnd: string;
+    sleepLatency: number;
+    awakenings: number;
+  }): Promise<ISleepSession> {
+    const { sleepStart, sleepEnd } = sessionData;
+    const start = new Date(sleepStart);
+    const end = new Date(sleepEnd);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new Error('Invalid sleep start or end date');
+    }
+
+    if (start >= end) {
+      throw new Error('Sleep start must be before sleep end');
+    }
+
+    const totalSleep = this.calculateTotalSleep(start, end);
+    const totalBedTime = this.calculateTotalBedTime(start, end);
 
     const session = new SleepSession({
-      userId,
-      date,
-      sleepDuration,
-      sleepQuality,
-      sleepLatency,
+      ...sessionData,
+      sleepStart: start,
+      sleepEnd: end,
+      totalSleep,
+      totalBedTime,
+      date: start
     });
 
-    return session.save();
+    return await session.save();
   }
 
-  async getSessionsForUser(userId: Types.ObjectId): Promise<ISleepSession[]> {
-    return SleepSession.find({ userId }).sort({ date: -1 }).exec();
+  public async getSessionsByUser(userId: string): Promise<ISleepSession[]> {
+    return await SleepSession.find({ userId }).sort({ date: -1 }).exec();
   }
 
-  async updateSession(
-    sessionId: Types.ObjectId,
-    data: Partial<SleepSessionData>
+  public async updateSession(
+    sessionId: string,
+    updateData: Partial<ISleepSession>
   ): Promise<ISleepSession | null> {
-    return SleepSession.findByIdAndUpdate(sessionId, data, { new: true }).exec();
+    const session = await SleepSession.findById(sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    // Verifica se sleepStart e sleepEnd estão definidos para recalcular os valores
+    if (updateData.sleepStart && updateData.sleepEnd) {
+      updateData.totalSleep = this.calculateTotalSleep(updateData.sleepStart, updateData.sleepEnd);
+      updateData.totalBedTime = this.calculateTotalBedTime(updateData.sleepStart, updateData.sleepEnd);
+    }
+
+    Object.assign(session, updateData);
+    return await session.save();
   }
 
-  async deleteSession(sessionId: Types.ObjectId): Promise<ISleepSession | null> {
-    return SleepSession.findByIdAndDelete(sessionId).exec();
+  public async deleteSession(sessionId: string): Promise<void> {
+    await SleepSession.findByIdAndDelete(sessionId);
   }
 
-  async calculateSleepStats(userId: Types.ObjectId): Promise<{
-    weeklyAverageDuration: number;
-    weeklyAverageQuality: number;
-    weeklyAverageLatency: number;
-    monthlyAverageDuration: number;
-    monthlyAverageQuality: number;
-    monthlyAverageLatency: number;
-  }> {
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
-
-    const weeklySessions = await SleepSession.find({
-      userId,
-      date: { $gte: oneWeekAgo }
-    }).exec();
-
-    const monthlySessions = await SleepSession.find({
-      userId,
-      date: { $gte: oneMonthAgo }
-    }).exec();
-
-    const weeklyAverageDuration = this.calculateAverage(
-      weeklySessions.map((session) => session.sleepDuration)
-    );
-    const weeklyAverageQuality = this.calculateAverage(
-      weeklySessions.map((session) => session.sleepQuality)
-    );
-    const weeklyAverageLatency = this.calculateAverage(
-      weeklySessions.map((session) => session.sleepLatency)
-    );
-    const monthlyAverageDuration = this.calculateAverage(
-      monthlySessions.map((session) => session.sleepDuration)
-    );
-    const monthlyAverageQuality = this.calculateAverage(
-      monthlySessions.map((session) => session.sleepQuality)
-    );
-    const monthlyAverageLatency = this.calculateAverage(
-      monthlySessions.map((session) => session.sleepLatency)
-    );
-
-    return {
-      weeklyAverageDuration,
-      weeklyAverageQuality,
-      weeklyAverageLatency,
-      monthlyAverageDuration,
-      monthlyAverageQuality,
-      monthlyAverageLatency
-    };
+  // Função para calcular o total de sono em minutos
+  private calculateTotalSleep(sleepStart: Date, sleepEnd: Date): number {
+    return (sleepEnd.getTime() - sleepStart.getTime()) / (1000 * 60); // Converte milissegundos para minutos
   }
 
-  private calculateAverage(values: number[]): number {
-    const total = values.reduce((sum, value) => sum + value, 0);
-    return values.length ? total / values.length : 0;
+  // Função para calcular o tempo total na cama
+  private calculateTotalBedTime(sleepStart: Date, sleepEnd: Date): number {
+    return this.calculateTotalSleep(sleepStart, sleepEnd);
   }
 }
 
-
-export default new SleepSessionService();
+export default SleepSessionService;

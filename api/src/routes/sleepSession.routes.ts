@@ -1,19 +1,14 @@
 import express from 'express';
-import {
-  createSleepSession,
-  getSleepSessionsByUser,
-  updateSleepSession,
-  deleteSleepSession
-} from '../controllers/sleepSessionController';
+import { createSession, getSessionsByUser, updateSession, deleteSession } from '../controllers/sleepSessionController';
 import { authorize } from '../middlewares/auth-middleware';
 
 const router = express.Router();
 
 router.use(authorize);
 
-router.post("/", createSleepSession);
-router.get("/:userId", getSleepSessionsByUser);
-router.put("/:sessionId", updateSleepSession);
-router.delete("/:sessionId", deleteSleepSession);
+router.post("/", createSession);
+router.get("/:userId", getSessionsByUser);
+router.put("/:sessionId", updateSession);
+router.delete("/:sessionId", deleteSession);
 
 export default router;

@@ -1,21 +1,27 @@
-import mongoose, { Schema, Document } from "mongoose";
+import { Schema, model, Document } from 'mongoose';
 
 export interface ISleepSession extends Document {
-  userId: Schema.Types.ObjectId;
+  userId: string;
   date: Date;
-  sleepDuration: number;
-  sleepQuality: number;
-  sleepLatency: number;
+  totalSleep: number; // Total de minutos dormidos
+  totalBedTime: number; // Tempo total na cama em minutos
+  sleepLatency: number; // Latência do sono em minutos
+  awakenings: number; // Número de despertares durante o sono
+  sleepStart: Date; // Horário de início do sono
+  sleepEnd: Date; // Horário de término do sono
 }
 
-const sleepSessionSchema = new Schema<ISleepSession>({
-  userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+const SleepSessionSchema = new Schema<ISleepSession>({
+  userId: { type: String, required: true },
   date: { type: Date, required: true },
-  sleepDuration: { type: Number, required: true },
-  sleepQuality: { type: Number, required: true },
+  totalSleep: { type: Number, required: true },
+  totalBedTime: { type: Number, required: true },
   sleepLatency: { type: Number, required: true },
-}, { timestamps: true });
+  awakenings: { type: Number, required: true },
+  sleepStart: { type: Date, required: true },
+  sleepEnd: { type: Date, required: true }
+});
 
-const SleepSession = mongoose.model<ISleepSession>("SleepSession", sleepSessionSchema);
+const SleepSession = model<ISleepSession>('SleepSession', SleepSessionSchema);
 
 export default SleepSession;
