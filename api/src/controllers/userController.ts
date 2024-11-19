@@ -39,7 +39,9 @@ const getOneUser = async (req: Request, res: Response): Promise<void> => {
 const createUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, email, password } = req.body;
+
     const newUser = await userService.create(name, email, password);
+
     res.status(201).json({ user: newUser });
   } catch (error) {
     console.log(error);

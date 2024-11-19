@@ -1,10 +1,10 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-interface IPreference extends Document {
+export interface IPreference extends Document {
   userId: Schema.Types.ObjectId;
-  duration: number;
-  startTime: string;
-  endTime: string;
+  sleepDuration: number;
+  sleepStartTime: string;
+  sleepEndTime: string;
   sleepMusic: string;
   alarmMusic: string;
   alarmDays: string[];
@@ -13,9 +13,9 @@ interface IPreference extends Document {
 const preferenceSchema = new Schema<IPreference>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    duration: { type: Number, required: true },
-    startTime: { type: String, required: true },
-    endTime: { type: String, required: true },
+    sleepDuration: { type: Number, required: true },
+    sleepStartTime: { type: String, required: true },
+    sleepEndTime: { type: String, required: true },
     sleepMusic: { type: String, required: true },
     alarmMusic: { type: String, required: true },
     alarmDays: { type: [String], required: true },

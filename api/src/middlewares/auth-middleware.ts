@@ -1,6 +1,8 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import User, { IUser } from "../models/User";
 
 dotenv.config();
 
@@ -9,27 +11,72 @@ interface TokenPayload {
   email: string;
 }
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+interface UserPayload {
+  id: string;
+  email: string;
+}
 
+declare global {
+  namespace Express {
+    interface Request {
+      user?: UserPayload;
+    }
+  }
+}
+
+export const authenticate = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  if (!email || !/\S+@\S+\.\S+/.test(email)) {
+    return res.status(400).json({ message: "Invalid email" });
+  }
+
+  const user: IUser | null = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const isPasswordValid: boolean = await bcrypt.compare(
+    password,
+    user.password
+  );
+  if (!isPasswordValid) {
+    return res.status(401).json({ message: "Invalid password" });
+  }
+
+  const secretKey = process.env.JWT_SECRET || "123";
+  const token = jwt.sign(
+    { id: user._id.toString(), email: user.email },
+    secretKey,
+    {
+      expiresIn: "3h",
+    }
+  );
+
+  return res.status(200).json({ token });
+};
+
+export const authorize: RequestHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   const token = req.headers["authorization"]?.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ message: "Token não fornecido" });
+    res.status(401).json({ message: "Token not provided" });
+    return;
   }
 
   try {
-
-    const secretKey = process.env.JWT_SECRET;
-    if (!secretKey) {
-      throw new Error("JWT_SECRET não está definido no arquivo .env");
-    }
-
+    const secretKey = process.env.JWT_SECRET || "123";
     const decoded = jwt.verify(token, secretKey) as TokenPayload;
 
-    req.headers["user-id"] = decoded.id;
-
+    req.user = { id: decoded.id, email: decoded.email };
     next();
   } catch (error) {
-    return res.status(401).json({ message: "Token inválido" });
+    res.status(401).json({ message: "Invalid token" });
+    return;
   }
 };
