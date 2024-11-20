@@ -4,7 +4,7 @@ import User from "../models/User";
 
 interface PreferenceData {
   userId: string;
-  sleepDuration: number;
+  wakeInterval: number;
   sleepStartTime: string;
   sleepEndTime: string;
   sleepMusic: string;

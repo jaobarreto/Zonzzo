@@ -4,7 +4,7 @@ import preferenceService from "../services/preferenceService";
 
 interface PreferenceData {
   userId: string;
-  sleepDuration: number;
+  wakeInterval: number;
   sleepStartTime: string;
   sleepEndTime: string;
   sleepMusic: string;
@@ -46,12 +46,12 @@ const getOnePreference = async (req: Request, res: Response): Promise<void> => {
 };
 
 const createPreference = async (req: Request, res: Response): Promise<void> => {
-  const { userId, sleepDuration, sleepStartTime, sleepEndTime, sleepMusic, alarmMusic, alarmDays }: PreferenceData = req.body;
+  const { userId, wakeInterval, sleepStartTime, sleepEndTime, sleepMusic, alarmMusic, alarmDays }: PreferenceData = req.body;
 
   try {
     const newPreference = await preferenceService.create({
       userId,
-      sleepDuration,
+      wakeInterval,
       sleepStartTime,
       sleepEndTime,
       sleepMusic,
