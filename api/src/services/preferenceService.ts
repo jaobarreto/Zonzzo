@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Preference, { IPreference } from "../models/Preference";
+import Preference, { IPreference, ISleepGoal } from "../models/Preference";
 import User from "../models/User";
 
 interface PreferenceData {
@@ -10,40 +10,22 @@ interface PreferenceData {
   sleepMusic: string;
   alarmMusic: string;
   alarmDays: string[];
+  sleepGoals?: ISleepGoal[];
 }
 
 class PreferenceService {
-  async getAll(): Promise<IPreference[]> {
-    try {
-      const preferences = await Preference.find();
-      return preferences;
-    } catch (error) {
-      console.error("Error fetching preferences:", error);
-      throw new Error("Error fetching preferences.");
-    }
-  }
-
-  async getOne(id: string): Promise<IPreference> {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new Error("Invalid ID format.");
+  async createPreference(data: PreferenceData): Promise<IPreference> {
+    if (!mongoose.Types.ObjectId.isValid(data.userId)) {
+      throw new Error("Invalid user ID format.");
     }
 
-    try {
-      const preference = await Preference.findById(id);
-      if (!preference) throw new Error("Preference not found.");
-      return preference;
-    } catch (error) {
-      console.error("Error fetching a specific preference:", error);
-      throw new Error("Error fetching a specific preference.");
-    }
-  }
-
-  async create(data: PreferenceData): Promise<IPreference> {
     try {
       const newPreference = await Preference.create(data);
+
       await User.findByIdAndUpdate(data.userId, {
         $push: { preferences: newPreference._id },
       });
+
       return newPreference;
     } catch (error) {
       console.error("Error creating preference:", error);
@@ -51,22 +33,34 @@ class PreferenceService {
     }
   }
 
-  async delete(id: string): Promise<void> {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new Error("Invalid ID format.");
-    }
-
+  async getAllPreferences(): Promise<IPreference[]> {
     try {
-      const result = await Preference.findByIdAndDelete(id);
-      if (!result) throw new Error("Preference not found.");
-      console.log(`Preference with id:${id} has been deleted.`);
+      return await Preference.find();
     } catch (error) {
-      console.error("Error deleting preference:", error);
-      throw new Error("Error deleting preference.");
+      console.error("Error fetching preferences:", error);
+      throw new Error("Error fetching preferences.");
     }
   }
 
-  async update(userId: string, updateData: Partial<PreferenceData>): Promise<IPreference> {
+  async getPreferenceByUserId(userId: string): Promise<IPreference> {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new Error("Invalid user ID format.");
+    }
+
+    try {
+      const preference = await Preference.findOne({ userId });
+      if (!preference) throw new Error("Preference not found.");
+      return preference;
+    } catch (error) {
+      console.error("Error fetching preference by user ID:", error);
+      throw new Error("Error fetching preference.");
+    }
+  }
+
+  async updatePreference(
+    userId: string,
+    updateData: Partial<PreferenceData>
+  ): Promise<IPreference> {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       throw new Error("Invalid user ID format.");
     }
@@ -78,12 +72,28 @@ class PreferenceService {
         { new: true, runValidators: true }
       );
 
-      if (!updatedPreference)
-        throw new Error("Preferences not found for this user.");
+      if (!updatedPreference) throw new Error("Preference not found.");
       return updatedPreference;
     } catch (error) {
       console.error("Error updating preference:", error);
       throw new Error("Error updating preference.");
+    }
+  }
+
+  async deletePreference(userId: string): Promise<void> {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new Error("Invalid user ID format.");
+    }
+
+    try {
+      const deletedPreference = await Preference.findOneAndDelete({ userId });
+
+      if (!deletedPreference) throw new Error("Preference not found.");
+
+      console.log(`Preference for user ID ${userId} has been deleted.`);
+    } catch (error) {
+      console.error("Error deleting preference:", error);
+      throw new Error("Error deleting preference.");
     }
   }
 }

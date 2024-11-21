@@ -1,15 +1,21 @@
 import express from "express";
-import { getAllPreferences, getOnePreference, createPreference, deletePreference, updatePreference } from "../controllers/preferenceController";
+import {
+  createPreference,
+  getAllPreferences,
+  getPreferenceByUserId,
+  updatePreference,
+  deletePreference,
+} from "../controllers/preferenceController";
 import { authorize } from "../middlewares/auth-middleware";
 
 const router = express.Router();
 
 router.use(authorize);
 
-router.get("/", getAllPreferences);
-router.get("/:id", getOnePreference);
 router.post("/", createPreference);
-router.delete("/:id", deletePreference);
-router.patch("/:id", updatePreference);
+router.get("/", getAllPreferences);
+router.get("/:userId", getPreferenceByUserId);
+router.put("/:userId", updatePreference);
+router.delete("/:userId", deletePreference);
 
 export default router;

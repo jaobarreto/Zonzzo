@@ -1,55 +1,27 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import preferenceService from "../services/preferenceService";
+import { ISleepGoal } from "../models/Preference";
 
-interface PreferenceData {
-  userId: string;
-  wakeInterval: number;
-  sleepStartTime: string;
-  sleepEndTime: string;
-  sleepMusic: string;
-  alarmMusic: string;
-  alarmDays: string[];
-}
+const createPreference = async (req: Request, res: Response): Promise<void> => {
+  const {
+    userId,
+    wakeInterval,
+    sleepStartTime,
+    sleepEndTime,
+    sleepMusic,
+    alarmMusic,
+    alarmDays,
+    sleepGoals,
+  } = req.body;
 
-const getAllPreferences = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const preferences = await preferenceService.getAll();
-    res.status(200).json({ preferences });
-  } catch (error) {
-    console.error("Error fetching preferences:", error);
-    res.status(500).json({ error: "Error fetching preferences." });
-  }
-};
-
-const getOnePreference = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    res.status(400).json({ error: "Invalid ID format." });
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    res.status(400).json({ error: "Invalid user ID format." });
     return;
   }
 
   try {
-    const preference = await preferenceService.getOne(id);
-
-    if (!preference) {
-      res.status(404).json({ error: "Preference not found." });
-      return;
-    }
-
-    res.status(200).json({ preference });
-  } catch (error) {
-    console.error("Error fetching preference:", error);
-    res.status(500).json({ error: "Error fetching preference." });
-  }
-};
-
-const createPreference = async (req: Request, res: Response): Promise<void> => {
-  const { userId, wakeInterval, sleepStartTime, sleepEndTime, sleepMusic, alarmMusic, alarmDays }: PreferenceData = req.body;
-
-  try {
-    const newPreference = await preferenceService.create({
+    const preference = await preferenceService.createPreference({
       userId,
       wakeInterval,
       sleepStartTime,
@@ -57,33 +29,30 @@ const createPreference = async (req: Request, res: Response): Promise<void> => {
       sleepMusic,
       alarmMusic,
       alarmDays,
+      sleepGoals,
     });
 
-    res.status(201).json({ preference: newPreference });
+    res.status(201).json({ preference });
   } catch (error) {
     console.error("Error creating preference:", error);
     res.status(500).json({ error: "Error creating preference." });
   }
 };
 
-const deletePreference = async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    res.status(400).json({ error: "Invalid ID format." });
-    return;
-  }
-
+const getAllPreferences = async (req: Request, res: Response): Promise<void> => {
   try {
-    await preferenceService.delete(id);
-    res.sendStatus(204);
+    const preferences = await preferenceService.getAllPreferences();
+    res.status(200).json({ preferences });
   } catch (error) {
-    console.error("Error deleting preference:", error);
-    res.status(500).json({ error: "Error deleting preference." });
+    console.error("Error fetching preferences:", error);
+    res.status(500).json({ error: "Error fetching preferences." });
   }
 };
 
-const updatePreference = async (req: Request, res: Response): Promise<void> => {
+const getPreferenceByUserId = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { userId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -91,21 +60,79 @@ const updatePreference = async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  const updateData: Partial<PreferenceData> = req.body;
+  try {
+    const preference = await preferenceService.getPreferenceByUserId(userId);
+    res.status(200).json({ preference });
+  } catch (error) {
+    console.error("Error fetching preference by user ID:", error);
+    res.status(500).json({ error: "Error fetching preference." });
+  }
+};
+
+const updatePreference = async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req.params;
+  const {
+    wakeInterval,
+    sleepStartTime,
+    sleepEndTime,
+    sleepMusic,
+    alarmMusic,
+    alarmDays,
+    sleepGoals,
+  }: Partial<{
+    wakeInterval: number;
+    sleepStartTime: string;
+    sleepEndTime: string;
+    sleepMusic: string;
+    alarmMusic: string;
+    alarmDays: string[];
+    sleepGoals: ISleepGoal[];
+  }> = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    res.status(400).json({ error: "Invalid user ID format." });
+    return;
+  }
 
   try {
-    const updatedPreference = await preferenceService.update(userId, updateData);
+    const updatedPreference = await preferenceService.updatePreference(userId, {
+      wakeInterval,
+      sleepStartTime,
+      sleepEndTime,
+      sleepMusic,
+      alarmMusic,
+      alarmDays,
+      sleepGoals,
+    });
 
-    if (!updatedPreference) {
-      res.status(404).json({ error: "Preference not found for this user." });
-      return;
-    }
-
-    res.status(200).json({ preference: updatedPreference });
+    res.status(200).json({ updatedPreference });
   } catch (error) {
     console.error("Error updating preference:", error);
     res.status(500).json({ error: "Error updating preference." });
   }
 };
 
-export { getAllPreferences, getOnePreference, createPreference, deletePreference, updatePreference };
+const deletePreference = async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    res.status(400).json({ error: "Invalid user ID format." });
+    return;
+  }
+
+  try {
+    await preferenceService.deletePreference(userId);
+    res.status(204).send();
+  } catch (error) {
+    console.error("Error deleting preference:", error);
+    res.status(500).json({ error: "Error deleting preference." });
+  }
+};
+
+export {
+  createPreference,
+  getAllPreferences,
+  getPreferenceByUserId,
+  updatePreference,
+  deletePreference,
+};
