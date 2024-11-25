@@ -2,14 +2,16 @@ import Report, { IReport } from "../models/Report";
 import SleepSession, { ISleepSession } from "../models/SleepSession";
 
 class ReportService {
-  private calculateSleepEfficiency(
-    totalSleep: number,
-    totalBedTime: number
-  ): number {
+
+  private roundToTwoDecimals(value: number): number {
+    return Math.round(value * 100) / 100;
+  }
+
+  private calculateSleepEfficiency(totalSleep: number, totalBedTime: number): number {
     if (totalBedTime === 0) return 0;
     const efficiency = (totalSleep / totalBedTime) * 100;
     console.log("Calculated Efficiency:", efficiency);
-    return efficiency;
+    return this.roundToTwoDecimals(efficiency);
   }
 
   private calculateSleepQuality(
@@ -21,35 +23,28 @@ class ReportService {
     const quality =
       0.5 * efficiency + 0.2 * latency + 0.2 * duration + 0.1 * awakenings;
     console.log("Calculated Sleep Quality:", quality);
-    return quality;
+    return this.roundToTwoDecimals(quality);
   }
 
-  private calculateSleepFragmentation(
-    awakenings: number,
-    duration: number
-  ): number {
+  private calculateSleepFragmentation(awakenings: number, duration: number): number {
     if (duration === 0) return 0;
     const fragmentation = (awakenings / duration) * 100;
     console.log("Calculated Sleep Fragmentation:", fragmentation);
-    return fragmentation;
+    return this.roundToTwoDecimals(fragmentation);
   }
 
-  private calculateLatencyIndex(
-    sleepLatency: number,
-    idealLatency: number = 20
-  ): number {
+  private calculateLatencyIndex(sleepLatency: number, idealLatency: number = 20): number {
     if (sleepLatency === 0) return 0;
     const latencyIndex = (1 - sleepLatency / idealLatency) * 100;
     console.log("Calculated Latency Index:", latencyIndex);
-    return latencyIndex;
+    return this.roundToTwoDecimals(latencyIndex);
   }
 
   private calculateAverage(values: number[]): number {
     if (values.length === 0) return 0;
-    const average =
-      values.reduce((acc, value) => acc + value, 0) / values.length;
+    const average = values.reduce((acc, value) => acc + value, 0) / values.length;
     console.log("Calculated Average:", average);
-    return average;
+    return this.roundToTwoDecimals(average);
   }
 
   public async generateWeeklyReport(userId: string): Promise<IReport> {
@@ -59,44 +54,44 @@ class ReportService {
     console.log("Start of Week:", startOfWeek);
     console.log("End of Week:", endOfWeek);
 
-    // Aqui realizamos a busca das sessões semanais
     const weeklySessions = await SleepSession.find({
       userId,
-      date: { $gte: startOfWeek, $lte: endOfWeek },
+      $or: [
+        { sleepStart: { $gte: startOfWeek, $lte: endOfWeek } },
+        { sleepEnd: { $gte: startOfWeek, $lte: endOfWeek } },
+      ],
     });
 
-    // Verifique o que foi recuperado para garantir que as sessões estão corretas
     console.log("Weekly Sessions:", weeklySessions);
 
-    // Caso não haja sessões, retorne ou trate o caso sem dados
     if (weeklySessions.length === 0) {
       console.log("Nenhuma sessão encontrada para o relatório semanal.");
       return new Report({
-          userId,
-          weeklySleepQuality: 0,
-          monthlySleepQuality: 0,
-          averageSleepDuration: 0,
-          sleepEfficiency: 0,
-          sleepLatencyScore: 0,
-          sleepFragmentationScore: 0,
-          createdAt: new Date(),
-          updatedAt: new Date()
+        userId,
+        weeklySleepQuality: 0,
+        monthlySleepQuality: 0,
+        averageSleepDuration: 0,
+        sleepEfficiency: 0,
+        sleepLatencyScore: 0,
+        sleepFragmentationScore: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
-  }
+    }
 
-    // Geração do relatório com as sessões recuperadas
     const reportData = this.generateReportFromSessions(weeklySessions);
     const report = new Report({ userId, ...reportData });
 
     return await report.save();
-}
-
+  }
 
   public async generateMonthlyReport(userId: string): Promise<IReport> {
     const monthlySessions = await SleepSession.find({
       userId,
-      date: { $gte: this.getStartOfMonth(), $lte: new Date() },
+      sleepStart: { $gte: this.getStartOfMonth(), $lte: new Date() },
     });
+
+    console.log("Monthly Sessions:", monthlySessions);
 
     const reportData = this.generateReportFromSessions(monthlySessions);
     const report = new Report({ userId, ...reportData });
@@ -169,9 +164,10 @@ class ReportService {
     const now = new Date();
     const dayOfWeek = now.getUTCDay();
     const diff = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
-    now.setUTCDate(now.getUTCDate() + diff);
-    now.setUTCHours(0, 0, 0, 0);
-    return now;
+    const startOfWeek = new Date(now);
+    startOfWeek.setUTCDate(now.getUTCDate() + diff);
+    startOfWeek.setUTCHours(0, 0, 0, 0);
+    return startOfWeek;
   }
 
   private getEndOfWeek(): Date {
@@ -184,7 +180,7 @@ class ReportService {
 
   private getStartOfMonth(): Date {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
+    return new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1));
   }
 }
 
