@@ -1,24 +1,32 @@
 import Image from 'next/image';
 import Background from '@/app/public/Background.svg';
 import Navbar from '@/app/components/Navbar';
+import ReportHome from '../components/ReportHome';
+import WeeklyStatus from '../components/WeeklyStatus';
+import ZonzzoTeachs from '../components/ZonzzoTeaches';
 
 export default function Home() {
   return (
-    <div className="relative h-screen w-screen">
-      <Image 
-        src={Background} 
-        alt="Background" 
-        layout="fill"
-        objectFit="cover"
-        objectPosition="top"
-        className="z-0" 
-      />
-      
-      <Navbar />
-
-      <div className="relative z-10 flex items-center justify-center h-full text-white">
-        <h1 className="text-4xl font-bold">Bem-vindo ao Home</h1>
-      </div>
+    <div>
+    <div className="absolute inset-0 -z-10">
+    <Image
+      src={Background}
+      alt="Background"
+      objectFit="cover"
+      priority
+    />
     </div>
+
+    <Navbar />
+     
+    <div className="flex gap-14 items-center justify-center mt-20">
+     <ReportHome />
+     <WeeklyStatus />
+    </div>
+
+    <div className="flex justify-center">
+     <ZonzzoTeachs />
+    </div>
+</div>
   );
-}
+};
