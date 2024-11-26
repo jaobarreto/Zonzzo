@@ -4,6 +4,7 @@ import Navbar from '@/app/components/Navbar';
 import ReportHome from '../components/ReportHome';
 import WeeklyStatus from '../components/WeeklyStatus';
 import ZonzzoTeachs from '../components/ZonzzoTeaches';
+import SleepPreferences from '../components/SleepPreferences';
 
 export default function Home() {
   return (
@@ -24,8 +25,9 @@ export default function Home() {
      <WeeklyStatus />
     </div>
 
-    <div className="flex justify-center">
+    <div className="flex gap-14 justify-center mt-20">
      <ZonzzoTeachs />
+     <SleepPreferences />
     </div>
 </div>
   );

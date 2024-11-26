@@ -29,9 +29,9 @@ const WeeklyStatus = () => {
   };
 
   return (
-    <div className="max-w-md">
+    <div className="max-w-sm">
       <h1 className="ml-6 mb-3 font-semibold text-[#FFBB00] text-lg">Status Semanal do Sono</h1>
-    <div className="bg-[#1A153C] rounded-lg shadow-xl text-center py-8">
+    <div className="bg-[#1A153C] rounded-xl shadow-xl text-center py-10 px-14">
       <div>
         <p>Você utilizou o Zonzzo em <span className="text-yellow-400">4 dias</span> nesta semana</p>
         <hr className="border-gray-500 my-2 mx-8" />
