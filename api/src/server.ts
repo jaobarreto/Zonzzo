@@ -1,29 +1,42 @@
 import express, { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import YAML from "yamljs";
+import swaggerUi from "swagger-ui-express";
+
 import "./config/db-connection";
+
 import userRoutes from "./routes/user.routes";
 import preferenceRoutes from "./routes/preference.routes";
-import authRoutes from './routes/authenticate.routes'
-import reportRoutes from './routes/report.routes'
-import sleepRoutes from './routes/sleepSession.routes'
-import moodRoutes from './routes/dailyMood.routes'
+import authRoutes from "./routes/authenticate.routes";
+import reportRoutes from "./routes/report.routes";
+import sleepRoutes from "./routes/sleepSession.routes";
+import moodRoutes from "./routes/dailyMood.routes";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({
-  origin: "http://localhost:3000",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
+try {
+  const swaggerDocument = YAML.load("./docs/zonzzo-api.yaml");
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+} catch (error) {
+  console.error("Erro ao carregar o arquivo de documentação Swagger:");
+}
+
 app.get("/", (req: Request, res: Response) => {
-  res.send("Welcome to the Zonzzo!");
+  res.send("Welcome to the Zonzzo API!");
 });
 
 app.use("/api/users", userRoutes);

@@ -1,0 +1,251 @@
+openapi: 3.0.0
+info:
+  title: Zonzzo API
+  description: Sono Inteligente - Plataforma de Monitoramento de Sono com IA
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3333/api
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    Preference:
+      type: object
+      properties:
+        userId:
+          type: string
+        wakeInterval:
+          type: number
+        sleepStartTime:
+          type: string
+        sleepEndTime:
+          type: string
+        sleepMusic:
+          type: string
+        alarmMusic:
+          type: string
+        alarmDays:
+          type: array
+          items:
+            type: string
+        sleepGoals:
+          type: array
+          items:
+            type: object
+            properties:
+              day:
+                type: string
+              sleepTime:
+                type: string
+              wakeTime:
+                type: string
+    DailyMood:
+      type: object
+      properties:
+        userId:
+          type: string
+        date:
+          type: string
+          format: date-time
+        mood:
+          type: number
+        energyLevel:
+          type: number
+    SleepSession:
+      type: object
+      properties:
+        userId:
+          type: string
+        sleepStart:
+          type: string
+          format: date-time
+        sleepEnd:
+          type: string
+          format: date-time
+        sleepLatency:
+          type: number
+        awakenings:
+          type: number
+        weeklySleepQuality:
+          type: number
+        averageSleepDuration:
+          type: number
+        sleepEfficiency:
+          type: number
+        sleepLatencyScore:
+          type: number
+        sleepFragmentationScore:
+          type: number
+
+paths:
+  /users:
+    get:
+      summary: List Users
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Lista de usuários
+    post:
+      summary: Create Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        201:
+          description: Usuário criado
+  /users/{userId}:
+    get:
+      summary: List One User
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Usuário encontrado
+    put:
+      summary: Update User
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        200:
+          description: Usuário atualizado
+    delete:
+      summary: Delete User
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Usuário deletado
+
+  /preferences:
+    post:
+      summary: Create Preference
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Preference'
+      responses:
+        201:
+          description: Preferência criada
+    get:
+      summary: List Preferences
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Lista de preferências
+  /preferences/{preferenceId}:
+    put:
+      summary: Update Preference
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: preferenceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                wakeInterval:
+                  type: number
+                sleepStartTime:
+                  type: string
+      responses:
+        200:
+          description: Preferência atualizada
+    delete:
+      summary: Delete Preference
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: preferenceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Preferência deletada
+
+  /report/weekly/{userId}:
+    get:
+      summary: Weekly Report
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Relatório semanal
+  /report/monthly/{userId}:
+    get:
+      summary: Monthly Report
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Relatório mensal
