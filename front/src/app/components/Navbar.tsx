@@ -6,8 +6,8 @@ export default function Navbar() {
       <div className="container mx-auto flex justify-between items-center">
         <h1 className="text-xl font-bold">Zonzzo</h1>
         <div className="flex items-center space-x-8">
-          <Link href="/relatorio" className="text-sm">
-            Relatório
+          <Link href="/relatorios" className="text-sm">
+            Relatórios
           </Link>
           <div className="flex items-center space-x-2">
             <svg
