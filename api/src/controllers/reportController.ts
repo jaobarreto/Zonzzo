@@ -3,42 +3,37 @@ import ReportService from '../services/reportService';
 
 const reportService = new ReportService();
 
-// Função para gerar o relatório semanal
 export const getWeeklyReport = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
-    const weeklyReport = await reportService.generateWeeklyReport(userId);
-    res.status(200).json(weeklyReport);
+    const userId = req.params.userId;
+    const report = await reportService.generateReport(userId, 'weekly');
+    res.status(200).json(report);
   } catch (error) {
-    res.status(500).json({ error: `Error generating weekly report: ${error}` });
+    console.error("Erro ao gerar relatório semanal:", error);
+    res.status(500).json({ message: 'Erro ao gerar relatório semanal', error });
   }
 };
 
-// Função para gerar o relatório mensal
 export const getMonthlyReport = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
-    const monthlyReport = await reportService.generateMonthlyReport(userId);
-    res.status(200).json(monthlyReport);
+    const userId = req.params.userId;
+    const report = await reportService.generateReport(userId, 'monthly');
+    res.status(200).json(report);
   } catch (error) {
-    res.status(500).json({ error: 'Error' });
+    console.error("Erro ao gerar relatório mensal:", error);
+    res.status(500).json({ message: 'Erro ao gerar relatório mensal', error });
   }
 };
 
-// Função para exibir um relatório completo com dados semanais e mensais
 export const getFullReport = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
-    const weeklyReport = await reportService.generateWeeklyReport(userId);
-    const monthlyReport = await reportService.generateMonthlyReport(userId);
+    const userId = req.params.userId;
+    const weeklyReport = await reportService.generateReport(userId, 'weekly');
+    const monthlyReport = await reportService.generateReport(userId, 'monthly');
 
-    const fullReport = {
-      weeklyReport,
-      monthlyReport,
-    };
-
-    res.status(200).json(fullReport);
+    res.status(200).json({ weeklyReport, monthlyReport });
   } catch (error) {
-    res.status(500).json({ error: 'Error' });
+    console.error("Erro ao gerar relatório completo:", error);
+    res.status(500).json({ message: 'Erro ao gerar relatório completo', error });
   }
 };
