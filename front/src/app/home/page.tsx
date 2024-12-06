@@ -20,7 +20,7 @@ export default function Home() {
 
     <Navbar />
      
-    <div className="flex gap-14 items-center justify-center mt-20">
+    <div className="flex gap-14 justify-center mt-20">
      <ReportHome />
      <WeeklyStatus />
     </div>

@@ -8,6 +8,10 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Montserrat', 'sans-serif'],
+        serif: ['Young Serif', 'serif'],
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",

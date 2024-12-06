@@ -36,10 +36,10 @@ const WeeklyAverage = () => {
   return (
     <div className="max-w-xl">
       <h1 className="ml-6 mb-3 font-semibold text-[#FFBB00] text-lg">Status Semanal do Sono</h1>
-    <div className="bg-[#1A153C] rounded-xl shadow-xl text-center py-10 px-14">
+    <div className="bg-black/30 rounded-3xl shadow-2xl text-center py-10 px-14">
       <div>
         <p>Você utilizou o Zonzzo em <span className="text-yellow-400">4 dias</span> <br /> no mês de Novembro</p>
-        <hr className="border-gray-500 my-2" />
+        <hr className="border-[#3D22F1]/20 my-2" />
       </div>
 
       <div className="grid grid-cols-2 mt-7">
@@ -51,7 +51,7 @@ const WeeklyAverage = () => {
         <div className="relative w-40 mx-auto">
         <p className="mt-7 mb-5">Média da <br /> Qualidade do Sono</p>
           <Doughnut data={data} options={options} />
-          <div className="absolute inset-0 flex items-center justify-center text-xl text-[#A69CE6] font-semibold mt-24">
+          <div className="absolute inset-0 flex items-center justify-center text-xl text-[#A69CE6] mt-24">
             71.4 %
           </div>
         </div>

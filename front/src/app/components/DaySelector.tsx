@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
+import Image from 'next/image';
+import Willing from '@/app/public/WillingIcon.svg';
 
 interface DaySelectorProps {
     className?: string;
@@ -17,8 +19,11 @@ function DaySelector ({ className = '' }: DaySelectorProps) {
   };
 
   return (
-    <div className="flex text-white font-extralight space-x-40">
-      {/* Dias da semana */}
+    <div className="flex text-white font-medium space-x-40 items-center">
+      <div className="flex items-center space-x-3">
+            <Image src={Willing} alt="Feedback do Sono do Dia"/>
+            <span className="text-[#00FFBF]">Disposto</span>
+      </div>
       <div className="flex space-x-5">
         {days.map((day, index) => (
           <span
@@ -32,7 +37,7 @@ function DaySelector ({ className = '' }: DaySelectorProps) {
       </div>
 
       {/* Data exibida */}
-      <span className="text-yellow-400">06/11/2024</span>
+      <span className="text-yellow-400 tracking-widest">06/11/2024</span>
     </div>
   );
 };

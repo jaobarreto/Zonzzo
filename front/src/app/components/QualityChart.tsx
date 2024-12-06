@@ -47,8 +47,6 @@ const QualityChart = () => {
                 transform: 'translate(-50%, -50%)',
                 color: '#00FFBF',
                 fontSize: '20px',
-                fontFamily: 'Arial',
-                fontWeight: 'bold',
             }}>
                 87.5 %
             </div>
