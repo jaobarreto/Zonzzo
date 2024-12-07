@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from 'react';
+import axios from 'axios'; 
 import { Doughnut } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -12,15 +14,33 @@ import {
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const QualityChart = () => {
+    const [chartData, setChartData] = useState<{ deepSleep: number; lightSleep: number } | null>(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await axios.get('http://localhost:4000/sleep-quality');
+                setChartData(response.data);
+            } catch (error) {
+                console.error("Erro ao buscar os dados do JSON Server:", error);
+            }
+        };
+        fetchData();
+    }, []);
+
+    if (!chartData) {
+        return <div>Carregando...</div>;
+    }
+
     const data = {
         labels: ['Sono Profundo', 'Sono Leve'],
         datasets: [
             {
-                data: [87.5, 12.5], // Percentual de qualidade do sono e o restante
-                backgroundColor: ['#00FFBF', '#0D1B2A'], // Cores para cada seção
+                data: [chartData.deepSleep, chartData.lightSleep],
+                backgroundColor: ['#00FFBF', '#0D1B2A'],
                 hoverBackgroundColor: ['#00E6AC', '#0D1B2A'],
                 borderWidth: 0,
-                cutout: '70%', // Faz o "buraco" no centro do gráfico
+                cutout: '70%',
             },
         ],
     };
@@ -29,10 +49,10 @@ const QualityChart = () => {
         responsive: true,
         plugins: {
             legend: {
-                display: false, // Oculta a legenda
+                display: false,
             },
             tooltip: {
-                enabled: false, // Desativa o tooltip ao passar o mouse
+                enabled: false,
             },
         },
     };
@@ -47,8 +67,10 @@ const QualityChart = () => {
                 transform: 'translate(-50%, -50%)',
                 color: '#00FFBF',
                 fontSize: '20px',
+                fontFamily: 'Arial',
+                fontWeight: 'bold',
             }}>
-                87.5 %
+                {chartData.deepSleep} %
             </div>
             <p style={{
                 color: '#FFFFFF',

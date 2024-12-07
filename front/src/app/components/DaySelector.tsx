@@ -9,11 +9,8 @@ interface DaySelectorProps {
   }
 
 function DaySelector ({ className = '' }: DaySelectorProps) {
-  // Definindo os dias da semana manualmente e o dia selecionado
   const days = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
-  const [selectedDay, setSelectedDay] = useState(3); // Definindo "Q" como o dia selecionado
-
-  // Função para alterar o dia selecionado
+  const [selectedDay, setSelectedDay] = useState(3); 
   const handleDayClick = (index: number) => {
     setSelectedDay(index);
   };
@@ -35,9 +32,7 @@ function DaySelector ({ className = '' }: DaySelectorProps) {
           </span>
         ))}
       </div>
-
-      {/* Data exibida */}
-      <span className="text-yellow-400 tracking-widest">06/11/2024</span>
+      <span className="text-yellow-400 tracking-widest">06/12/2024</span>
     </div>
   );
 };

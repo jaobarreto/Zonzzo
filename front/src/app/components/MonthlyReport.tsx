@@ -44,10 +44,10 @@ const MonthlyReport = () => {
 
   return (
     <div className="max-w-xl">
-      <h1 className="ml-6 mb-3 font-semibold text-[#FFBB00] text-lg">Novembro</h1>
+      <h1 className="ml-6 mb-3 font-semibold text-[#FFBB00] text-lg">Dezembro</h1>
     <div className="bg-black/30 rounded-3xl shadow-2xl text-center py-10 px-14">
       <div>
-        <p>Você utilizou o Zonzzo em <span className="text-yellow-400">10 dias</span> <br /> no mês de Novembro</p>
+        <p>Você utilizou o Zonzzo em <span className="text-yellow-400">4 dias</span> <br /> no mês de Dezembro</p>
         <hr className="border-[#3D22F1]/20 my-2" />
       </div>
 
