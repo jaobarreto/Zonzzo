@@ -8,7 +8,7 @@ const NightSleepReport = () => {
     return(
         <div className="max-w-7xl">
         <h1 className="ml-6 mb-3 font-semibold text-[#FFBB00] text-lg">Relatório</h1>
-        <div className="flex space-x-5 bg-[#1A153C] rounded-lg shadow-xl py-12 px-8">
+        <div className="flex space-x-5 bg-black/30 rounded-3xl shadow-2xl py-12 px-5">
 
           <div className="flex flex-col">
               <div className="flex items-center space-x-3 mt-5 ml-24">
@@ -22,14 +22,14 @@ const NightSleepReport = () => {
              </div>
           </div>
 
-        <div className="border-l-2 border-gray-500 px-5">
+        <div className="border-l-2 border-[#3D22F1]/20 px-5 text-sm">
           <div className="grid grid-cols-2 px-5 max-h-16">
-            <div className="space-y-5">
+            <div className="space-y-4">
             <p>Dormiu: <span className="text-yellow-400">23:01</span></p>
             <p>Acordou: <span className="text-yellow-400">06:59</span></p>
             </div>
 
-            <div className="space-y-5">
+            <div className="space-y-4">
             <p>Horas Dormidas: <span className="text-yellow-400">7h e 58 min</span></p>
             <p>Adormeceu Após: <span className="text-yellow-400">16 min</span></p>
             </div>
