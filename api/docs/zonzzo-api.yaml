@@ -16,80 +16,167 @@ components:
   schemas:
     User:
       type: object
+      required:
+        - name
+        - email
+        - password
       properties:
         name:
           type: string
+          description: Nome do usuário
         email:
           type: string
+          format: email
+          description: Email do usuário
         password:
           type: string
+          description: Senha do usuário
     Preference:
       type: object
+      required:
+        - userId
+        - wakeInterval
+        - sleepStartTime
+        - sleepEndTime
       properties:
         userId:
           type: string
+          description: ID do usuário
         wakeInterval:
           type: number
+          description: Intervalo de tempo entre os alarmes (em horas)
         sleepStartTime:
           type: string
+          format: time
+          description: Hora de início do sono
         sleepEndTime:
           type: string
+          format: time
+          description: Hora de término do sono
         sleepMusic:
           type: string
+          description: Música para dormir
         alarmMusic:
           type: string
+          description: Música do alarme
         alarmDays:
           type: array
           items:
             type: string
+            enum:
+              - Segunda-feira
+              - Terça-feira
+              - Quarta-feira
+              - Quinta-feira
+              - Sexta-feira
+              - Sábado
+              - Domingo
+            description: Dias da semana do alarme
         sleepGoals:
           type: array
           items:
             type: object
+            required:
+              - day
+              - sleepTime
+              - wakeTime
             properties:
               day:
                 type: string
+                enum:
+                  - Segunda-feira
+                  - Terça-feira
+                  - Quarta-feira
+                  - Quinta-feira
+                  - Sexta-feira
+                  - Sábado
+                  - Domingo
+                description: Dia da semana
               sleepTime:
                 type: string
+                format: time
+                description: Hora de dormir
               wakeTime:
                 type: string
+                format: time
+                description: Hora de acordar
+
+
+components:
+  schemas:
+    # ... (outros schemas)
+
     DailyMood:
       type: object
+      required:
+        - userId
+        - date
+        - mood
       properties:
         userId:
           type: string
+          description: ID do usuário
         date:
           type: string
           format: date-time
+          description: Data do registro do humor
         mood:
           type: number
+          minimum: 1
+          maximum: 10
+          description: Nível de humor (de 1 a 10)
         energyLevel:
           type: number
+          minimum: 1
+          maximum: 10
+          description: Nível de energia (de 1 a 10)
+        notes:
+          type: string
+          description: Notas adicionais sobre o humor
+
     SleepSession:
       type: object
+      required:
+        - userId
+        - sleepStart
+        - sleepEnd
+        - timeToFallAsleep
+        - awakenings
       properties:
         userId:
           type: string
+          description: ID do usuário
         sleepStart:
           type: string
           format: date-time
+          description: Hora de início do sono
         sleepEnd:
           type: string
           format: date-time
-        sleepLatency:
+          description: Hora de término do sono
+        timeToFallAsleep:
           type: number
+          description: Tempo para pegar no sono (em minutos)
         awakenings:
           type: number
-        weeklySleepQuality:
+          description: Número de despertares durante a noite
+        sleepQuality:
           type: number
-        averageSleepDuration:
+          minimum: 1
+          maximum: 5
+          description: Qualidade do sono (1: muito ruim, 5: excelente)
+        REMsleep:
           type: number
+          description: Duração do sono REM (em minutos)
+        deepSleep:
+          type: number
+          description: Duração do sono profundo (em minutos)
+        lightSleep:
+          type: number
+          description: Duração do sono leve (em minutos)
         sleepEfficiency:
           type: number
-        sleepLatencyScore:
-          type: number
-        sleepFragmentationScore:
-          type: number
+          description: Eficiência do sono (%)
 
 paths:
   /users:
@@ -97,11 +184,21 @@ paths:
       summary: List Users
       security:
         - BearerAuth: []
+      description: Retorna uma lista de todos os usuários cadastrados.
       responses:
-        200:
+        '200':
           description: Lista de usuários
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: Não autorizado
     post:
       summary: Create Users
+      description: Cria um novo usuário.
       requestBody:
         required: true
         content:
@@ -109,30 +206,46 @@ paths:
             schema:
               $ref: '#/components/schemas/User'
       responses:
-        201:
-          description: Usuário criado
+        '201':
+          description: Usuário criado com sucesso
+        '400':
+          description: Dados de usuário inválidos
+        '409':
+          description: Usuário já existe
   /users/{userId}:
     get:
       summary: List One User
       security:
         - BearerAuth: []
+      description: Retorna as informações de um usuário específico.
       parameters:
         - name: userId
           in: path
           required: true
+          description: ID do usuário
           schema:
             type: string
       responses:
-        200:
+        '200':
           description: Usuário encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Não autorizado
+        '404':
+          description: Usuário não encontrado
     put:
       summary: Update User
       security:
         - BearerAuth: []
+      description: Atualiza as informações de um usuário.
       parameters:
         - name: userId
           in: path
           required: true
+          description: ID do usuário
           schema:
             type: string
       requestBody:
@@ -144,28 +257,42 @@ paths:
               properties:
                 email:
                   type: string
+                  format: email
       responses:
-        200:
-          description: Usuário atualizado
+        '200':
+          description: Usuário atualizado com sucesso
+        '400':
+          description: Dados de usuário inválidos
+        '401':
+          description: Não autorizado
+        '404':
+          description: Usuário não encontrado
     delete:
       summary: Delete User
       security:
         - BearerAuth: []
+      description: Exclui um usuário.
       parameters:
         - name: userId
           in: path
           required: true
+          description: ID do usuário
           schema:
             type: string
       responses:
-        204:
-          description: Usuário deletado
+        '204':
+          description: Usuário excluído com sucesso
+        '401':
+          description: Não autorizado
+        '404':
+          description: Usuário não encontrado
 
   /preferences:
     post:
       summary: Create Preference
       security:
         - BearerAuth: []
+      description: Cria as preferências de sono do usuário.
       requestBody:
         required: true
         content:
@@ -173,24 +300,39 @@ paths:
             schema:
               $ref: '#/components/schemas/Preference'
       responses:
-        201:
-          description: Preferência criada
+        '201':
+          description: Preferência criada com sucesso
+        '400':
+          description: Dados de preferência inválidos
+        '401':
+          description: Não autorizado
     get:
       summary: List Preferences
       security:
         - BearerAuth: []
+      description: Retorna as preferências de sono do usuário.
       responses:
-        200:
+        '200':
           description: Lista de preferências
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Preference'
+        '401':
+          description: Não autorizado
   /preferences/{preferenceId}:
     put:
       summary: Update Preference
       security:
         - BearerAuth: []
+      description: Atualiza as preferências de sono do usuário.
       parameters:
         - name: preferenceId
           in: path
           required: true
+          description: ID da preferência
           schema:
             type: string
       requestBody:
@@ -202,50 +344,72 @@ paths:
               properties:
                 wakeInterval:
                   type: number
+                  description: Intervalo de tempo entre os alarmes (em horas)
                 sleepStartTime:
                   type: string
+                  format: time
+                  description: Hora de início do sono
       responses:
-        200:
-          description: Preferência atualizada
+        '200':
+          description: Preferência atualizada com sucesso
+  /preferences/{preferenceId}:
     delete:
       summary: Delete Preference
+      description: Exclui a preferência do usuário.
       security:
         - BearerAuth: []
       parameters:
         - name: preferenceId
           in: path
           required: true
+          description: ID da preferência
           schema:
             type: string
       responses:
-        204:
-          description: Preferência deletada
+        '204':
+          description: Preferência excluída com sucesso
+        '401':
+          description: Não autorizado
+        '404':
+          description: Preferência não encontrada
 
-  /report/weekly/{userId}:
-    get:
-      summary: Weekly Report
+   /wakeSessions:
+    post:
+      summary: Create Wake Session
+      description: Registra uma sessão de despertar do usuário.
       security:
         - BearerAuth: []
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/wake'
       responses:
-        200:
-          description: Relatório semanal
-  /report/monthly/{userId}:
-    get:
-      summary: Monthly Report
+        '201':
+          description: Sessão de despertar criada com sucesso
+        '400':
+          description: Dados inválidos
+        '401':
+          description: Não autorizado
+
+  /sleepSessions:
+    post:
+      summary: Create Sleep Session
+      description: Registra uma sessão de sono do usuário.
       security:
         - BearerAuth: []
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SleepSession'
       responses:
-        200:
-          description: Relatório mensal
+        '201':
+          description: Sessão de sono criada com sucesso
+        '400':
+          description: Dados inválidos
+        '401':
+          description: Não autorizado
+          '
