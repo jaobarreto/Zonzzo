@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Mood {
+  DISPOSTO
+  NORMAL
+  EXAUSTO
+}
+
+enum ReportType {
+  SEMANAL
+  MENSAL
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sleepPreference SleepPreference?
+  sleepGoals  SleepGoal[]
+  sleepSessions SleepSession[]
+  sleepReports SleepReport[]
+}
+
+model SleepPreference {
+  id                 String  @id @default(uuid())
+  userId             String  @unique
+  wakeupFlexMinutes  Int
+  wakeSound          String
+  sleepSound         String
+  wakeSoundVolume    Int
+  sleepSoundVolume   Int
+  user               User @relation(fields: [userId], references: [id])
+}
+
+model SleepGoal {
+  id           String  @id @default(uuid())
+  userId       String
+  daysOfWeek   Int[]
+  sleepTime    DateTime
+  wakeTime     DateTime
+  isActive     Boolean
+  user         User @relation(fields: [userId], references: [id])
+}
+
+model SleepSession {
+  id                String  @id @default(uuid())
+  userId            String
+  sleepDate         DateTime
+  minutesSlept      Int
+  minutesInBed      Int
+  sleepLatency      Int
+  awakenings        Int
+  sleepStartTime    DateTime
+  sleepEndTime      DateTime
+  dailyNotes        String?
+  wakeSession       WakeSession?
+  user              User @relation(fields: [userId], references: [id])
+}
+
+model WakeSession {
+  id            String  @id @default(uuid())
+  sleepSessionId String  @unique
+  wakeDate      DateTime
+  wakeTime      DateTime
+  dreamNotes    String?
+  sleepFeedback SleepFeedback?
+  sleepSession  SleepSession @relation(fields: [sleepSessionId], references: [id])
+}
+
+model SleepFeedback {
+  id            String  @id @default(uuid())
+  wakeSessionId String  @unique
+  mood          String // Enum: "disposto", "normal", "exausto"
+  wakeSession   WakeSession @relation(fields: [wakeSessionId], references: [id])
+}
+
+model SleepReport {
+  id                  String  @id @default(uuid())
+  userId              String
+  month               Int
+  year                Int
+  type                String // Enum: "semanal", "mensal"
+  daysUsed            Int
+  avgSleepHours       Float
+  avgSleepLatency     Float
+  avgSleepQuality     Float
+  daysFeelingGood     Int
+  daysFeelingNormal   Int
+  daysFeelingExhausted Int
+  daysWithoutSleep    Int
+  user                User @relation(fields: [userId], references: [id])
+}
