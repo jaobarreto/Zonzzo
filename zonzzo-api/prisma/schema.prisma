@@ -18,7 +18,7 @@ enum ReportType {
   MENSAL
 }
 
-model User {
+model User { // Usuário
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
@@ -31,7 +31,7 @@ model User {
   sleepReports SleepReport[]
 }
 
-model SleepPreference {
+model SleepPreference { // Preferências de Sono
   id                 String  @id @default(uuid())
   userId             String  @unique
   wakeupFlexMinutes  Int
@@ -42,7 +42,7 @@ model SleepPreference {
   user               User @relation(fields: [userId], references: [id])
 }
 
-model SleepGoal {
+model SleepGoal { // Metas de Sono
   id           String  @id @default(uuid())
   userId       String
   daysOfWeek   Int[]
@@ -52,7 +52,7 @@ model SleepGoal {
   user         User @relation(fields: [userId], references: [id])
 }
 
-model SleepSession {
+model SleepSession { // Sessão de sono
   id                String  @id @default(uuid())
   userId            String
   sleepDate         DateTime
@@ -67,7 +67,7 @@ model SleepSession {
   user              User @relation(fields: [userId], references: [id])
 }
 
-model WakeSession {
+model WakeSession { // Sessão de acordar
   id            String  @id @default(uuid())
   sleepSessionId String  @unique
   wakeDate      DateTime
@@ -77,26 +77,26 @@ model WakeSession {
   sleepSession  SleepSession @relation(fields: [sleepSessionId], references: [id])
 }
 
-model SleepFeedback {
+model SleepFeedback { // Feedback de sono
   id            String  @id @default(uuid())
   wakeSessionId String  @unique
   mood          String // Enum: "disposto", "normal", "exausto"
   wakeSession   WakeSession @relation(fields: [wakeSessionId], references: [id])
 }
 
-model SleepReport {
+model SleepReport { // Relatório de Sono
   id                  String  @id @default(uuid())
-  userId              String
-  month               Int
-  year                Int
-  type                String // Enum: "semanal", "mensal"
-  daysUsed            Int
-  avgSleepHours       Float
-  avgSleepLatency     Float
-  avgSleepQuality     Float
-  daysFeelingGood     Int
-  daysFeelingNormal   Int
-  daysFeelingExhausted Int
-  daysWithoutSleep    Int
-  user                User @relation(fields: [userId], references: [id])
+  userId              String  
+  month               Int     
+  year                Int     
+  type                String  // Tipo: "semanal", "mensal"
+  daysUsed            Int     // Dias utilizados
+  avgSleepHours       Float   // Média de horas de sono
+  avgSleepLatency     Float   // Média de latência do sono (tempo para adormecer)
+  avgSleepQuality     Float   // Média de qualidade do sono
+  daysFeelingGood     Int     // Dias se sentindo bem
+  daysFeelingNormal   Int     // Dias se sentindo normal
+  daysFeelingExhausted Int   // Dias se sentindo exausto
+  daysWithoutSleep    Int     // Dias sem dormir
+  user                User @relation(fields: [userId], references: [id]) // Relação com o usuário
 }
