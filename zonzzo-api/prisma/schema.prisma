@@ -14,6 +14,7 @@ enum Mood {
 }
 
 enum ReportType {
+  DIARIO
   SEMANAL
   MENSAL
 }
@@ -84,19 +85,18 @@ model SleepFeedback { // Feedback de sono
   wakeSession   WakeSession @relation(fields: [wakeSessionId], references: [id])
 }
 
-model SleepReport { // Relatório de Sono
+model SleepReport { //Relatório
   id                  String  @id @default(uuid())
-  userId              String  
-  month               Int     
-  year                Int     
-  type                String  // Tipo: "semanal", "mensal"
-  daysUsed            Int     // Dias utilizados
-  avgSleepHours       Float   // Média de horas de sono
-  avgSleepLatency     Float   // Média de latência do sono (tempo para adormecer)
-  avgSleepQuality     Float   // Média de qualidade do sono
-  daysFeelingGood     Int     // Dias se sentindo bem
-  daysFeelingNormal   Int     // Dias se sentindo normal
-  daysFeelingExhausted Int   // Dias se sentindo exausto
-  daysWithoutSleep    Int     // Dias sem dormir
-  user                User @relation(fields: [userId], references: [id]) // Relação com o usuário
+  userId              String
+  date                DateTime
+  type                ReportType    
+  daysUsed            Int
+  avgSleepHours       Float
+  avgSleepLatency     Float
+  avgSleepEfficiency  Float
+  sleepFragmentation  Float
+  latencyIndex        Float
+  createdAt           DateTime @default(now())
+  user                User @relation(fields: [userId], references: [id]) 
 }
+
